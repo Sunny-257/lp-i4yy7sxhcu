@@ -1,0 +1,697 @@
+@counter-style zenkaku {
+  system: numeric;
+  symbols: "０" "１" "２" "３" "４" "５" "６" "７" "８" "９";
+}
+
+:root {
+  --bg: #fbfaf6;
+  --bg-soft: #f1efe7;
+  --bg-green: #e5f1ec;
+  --ink: #2f3a33;
+  --ink-sub: #5e6a62;
+  --line: #dcdbd2;
+  --green: #268463;
+  --green-deep: #1a5e46;
+  --green-soft: #d3e9df;
+  /* メインカラー＝オレンジ（コーラル）／サブカラー＝緑（上の --green 系）
+     coral-deep は小さい文字用（白背景とのコントラスト比 5.3） */
+  --coral: #e2603f;
+  --coral-deep: #b9452a;
+  --coral-soft: #fde1d8;
+  --coral-pale: #feede6; /* 吹き出し・特長カードなど、面に使うごく薄いオレンジ */
+  --white: #ffffff;
+  --radius: 16px;
+  --shadow: 0 8px 32px rgba(47, 58, 51, .08);
+  --maru: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", sans-serif;
+  --sans: "Noto Sans JP", "Hiragino Sans", sans-serif;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.9;
+  letter-spacing: .03em;
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; height: auto; display: block; }
+/* PCだけ／スマホだけの改行 */
+.sp-only { display: none; }
+@media (max-width: 840px) { .wide-only { display: none; } }
+a { color: inherit; }
+.wrap { width: min(1080px, 100% - 32px); margin-inline: auto; }
+.narrow { width: min(760px, 100% - 32px); margin-inline: auto; }
+
+/* ---------- 共通パーツ ---------- */
+.section { padding: 96px 0; }
+.section--soft { background: var(--bg-soft); }
+.section--white { background: var(--white); }
+.eyebrow {
+  display: block;
+  font-family: var(--maru);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: .2em;
+  color: var(--coral-deep);
+  text-align: center;
+  margin-bottom: 8px;
+}
+.eyebrow--green { color: var(--green); }
+.h2 {
+  font-family: var(--maru);
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 1.5;
+  text-align: center;
+  margin: 0 0 48px;
+}
+.keys {
+  /* 鍵盤モチーフの区切り線 */
+  height: 56px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='168' height='56'%3E%3Crect width='168' height='56' fill='%23fff'/%3E%3Cg fill='%232f3a33'%3E%3Crect x='16' width='14' height='34' rx='2'/%3E%3Crect x='42' width='14' height='34' rx='2'/%3E%3Crect x='88' width='14' height='34' rx='2'/%3E%3Crect x='113' width='14' height='34' rx='2'/%3E%3Crect x='138' width='14' height='34' rx='2'/%3E%3C/g%3E%3C/svg%3E") repeat-x left top;
+  /* 上は内側の影（鍵盤が一段奥にある感じ）、下は外側にふわっとした影。
+     下の影が次のセクションの上に落ちるよう、重なり順を上げる */
+  position: relative; z-index: 2;
+  box-shadow: inset 0 8px 8px -8px rgba(150, 125, 90, .22), 0 4px 16px rgba(150, 125, 90, .13);
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 48px;
+  border-radius: 999px;
+  background: var(--coral);
+  color: var(--white);
+  font-family: var(--maru);
+  font-weight: 700;
+  font-size: 22px;
+  text-decoration: none;
+  border: 2px solid transparent; background-origin: border-box;
+  box-shadow: 0 8px 20px rgba(226, 96, 63, .3);
+  /* ホバーの塗り（下の .btn::before）をボタンの中に収める */
+  position: relative; overflow: hidden; isolation: isolate;
+}
+.btn svg { width: 24px; height: 24px; flex: none; }
+.btn-note { font-size: 14px; color: var(--ink-sub); margin-top: 16px; }
+.cta-block { text-align: center; margin-top: 56px; }
+.dummy {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #9a5b00;
+  background: #fff1c9;
+  border: 1px dashed #d9a300;
+  border-radius: 4px;
+  padding: 0 8px;
+  margin-left: 8px;
+  vertical-align: middle;
+  letter-spacing: 0;
+}
+
+/* ---------- ファーストビュー ---------- */
+/* イメージ：画像_用意/fv_イメージ_pc.jpg・fv_イメージ_sp.jpg
+   写真を画面いっぱいに敷き、左と下を白っぽくぼかしてコピー・特長・ボタンを重ねる */
+.hero {
+  --side: max(16px, calc((100vw - 1080px) / 2)); /* 左右の余白を他のセクションの .wrap と揃える */
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; align-items: flex-start;
+  padding: 48px var(--side) 32px;
+}
+.hero-photo { position: absolute; inset: 0; z-index: 0; }
+/* PC：写真は切り抜かずに右上へ寄せ、左端と下端を背景色へぼかす。
+   コピーは写真の左側の余白（ぼかした部分）に置く */
+.hero-photo img {
+  /* 高さはFVの9割まで（下の特長3つには重ねすぎない）、幅は縦横比なり */
+  position: absolute; right: 0; top: 0;
+  height: 90%; width: auto; max-width: 80%; object-fit: cover; object-position: 100% 50%;
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0%, #000 16%),
+    linear-gradient(to top, transparent 0%, transparent 8%, #000 36%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent 0%, #000 16%),
+    linear-gradient(to top, transparent 0%, transparent 8%, #000 36%);
+  mask-composite: intersect;
+}
+.hero-text, .hero-bottom { position: relative; z-index: 1; }
+/* 白いモヤは文字のまわりだけ（写真の他の部分にはかけない） */
+.hero-text, .hero-cta { position: relative; z-index: 1; }
+.hero-text {
+  margin-bottom: 32px;
+  /* 文字の形に沿ったモヤ（重ねて濃くし、写真の暗い部分の上でも読めるようにする） */
+  text-shadow:
+    0 0 2px var(--bg), 0 0 4px var(--bg), 0 0 8px var(--bg),
+    0 0 16px rgba(251, 250, 246, .95), 0 0 24px rgba(251, 250, 246, .9);
+}
+
+/* Material Symbols（アイコンフォント） */
+.ms {
+  font-family: "Material Symbols Rounded"; font-weight: 400; font-style: normal; line-height: 1;
+  font-feature-settings: "liga"; -webkit-font-feature-settings: "liga";
+  font-variation-settings: "FILL" 0;
+  display: inline-block; white-space: nowrap;
+}
+
+.hero-label {
+  display: flex; align-items: center; gap: 8px; margin: 0 0 24px;
+  font-family: var(--maru); font-weight: 700; font-size: 18px;
+}
+.hero-label .ms { font-size: 32px; color: var(--ink); }
+.hero h1 {
+  font-family: var(--maru); font-weight: 700;
+  font-size: 56px; line-height: 1.25;
+  margin: 0 0 24px; letter-spacing: .02em;
+}
+.hero h1 em {
+  font-style: normal; font-size: 72px; color: var(--coral);
+  /* 全角数字と「ヶ」の左右の余白が広く見えるので詰める */
+  font-feature-settings: "palt"; letter-spacing: -.04em;
+  /* 文字の下に、角の丸いマーカー */
+  background: linear-gradient(var(--coral-soft), var(--coral-soft)) no-repeat 0 88% / 100% .2em;
+  border-radius: 8px;
+}
+.hero-lead { margin: 0; font-family: var(--maru); font-weight: 700; font-size: 20px; line-height: 1.7; }
+.hero-lead strong { color: var(--coral); font-size: 36px; line-height: 1; margin: 0 8px; }
+
+.hero-bottom { align-self: stretch; margin-top: 40px; display: grid; justify-items: center; }
+.hero-features {
+  list-style: none; padding: 0; margin: 0;
+  display: grid; grid-template-columns: repeat(3, auto); justify-content: center;
+}
+.hero-features li {
+  display: flex; align-items: center; gap: 16px;
+  padding: 0 40px; border-left: 1px solid var(--line); white-space: nowrap;
+  font-family: var(--maru); font-weight: 700; font-size: 16px; line-height: 1.6;
+}
+.hero-features li:first-child { border-left: 0; }
+/* 特長3つも、写真に重なる部分は文字の形に沿ったモヤで読みやすく */
+.hero-features li { text-shadow: 0 0 2px var(--bg), 0 0 4px var(--bg), 0 0 8px var(--bg), 0 0 16px rgba(251, 250, 246, .9); }
+.hero-features strong { color: var(--coral); font-size: 32px; line-height: 1; margin: 0; font-feature-settings: "palt"; letter-spacing: -.04em; }
+.hero-icon {
+  flex: none; width: 64px; height: 64px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--bg-green); color: var(--green-deep);
+}
+.hero-icon.is-warm { background: var(--coral-soft); color: var(--coral); }
+.hero-icon .ms { font-size: 36px; }
+
+.hero-cta {
+  display: inline-flex; align-items: center; justify-content: center; gap: 16px;
+  width: min(520px, 100%); padding: 8px 8px 8px 32px;
+  border-radius: 999px; background: var(--coral); color: var(--white);
+  font-family: var(--maru); font-weight: 700; font-size: 18px; text-decoration: none; white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(226, 96, 63, .3);
+  position: relative; overflow: hidden; isolation: isolate;
+}
+/* CTAボタン共通のホバー：位置は動かさず、先端が丸い濃いオレンジの面が左から右へすべり込む */
+.btn::before, .hero-cta::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  border-radius: 999px; background: var(--coral-deep);
+  transform: translateX(-101%);
+  transition: transform .4s ease;
+}
+.btn:hover::before, .hero-cta:hover::before { transform: none; }
+.hero-cta-label { flex: 1; display: flex; flex-direction: column; align-items: center; line-height: 1.5;
+  /* 見た目の上下余白を揃えるための微調整（8の倍数の例外） */
+  padding-bottom: 4px; }
+/* ボタン内の注記（2行目） */
+.hero-cta-label small { font-size: 14px; font-weight: 500; opacity: .9; }
+.hero-cta b { font-size: 24px; margin: 0 8px; }
+.hero-cta-arrow {
+  flex: none; width: 56px; height: 56px; border-radius: 50%;
+  display: grid; place-items: center; background: var(--white); color: var(--coral);
+}
+.hero-cta-arrow .ms { font-size: 32px; }
+
+/* ---------- 特長 ---------- */
+.features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.feature {
+  background: var(--coral-pale); border-radius: var(--radius); padding: 40px 32px;
+  text-align: center;
+}
+.feature-icon {
+  width: 72px; height: 72px; margin: 0 auto 24px; border-radius: 50%;
+  background: var(--white); display: grid; place-items: center; color: var(--coral);
+}
+.feature-icon svg { width: 34px; height: 34px; }
+.feature h3 { font-family: var(--maru); font-weight: 700; font-size: 20px; line-height: 1.5; margin: 0 0 16px; }
+.feature p { margin: 0; font-size: 16px; color: var(--ink-sub); text-align: left; }
+
+/* ---------- 実績 ---------- */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.stat {
+  background: var(--white); border-radius: var(--radius); padding: 32px 16px;
+  text-align: center; box-shadow: var(--shadow);
+}
+/* 項目名（達成率など）：薄いオレンジの小さなラベルにして目立たせる */
+.stat-label {
+  display: inline-block; padding: 0 16px; border-radius: 999px;
+  background: var(--coral-pale); color: var(--coral-deep);
+  font-family: var(--maru); font-size: 16px; font-weight: 700; line-height: 2;
+}
+.stat-num { font-family: var(--maru); font-weight: 700; font-size: 52px; color: var(--coral); line-height: 1.3; }
+.stat-num small { font-size: 22px; }
+.stat-num--text { font-size: 26px; line-height: 1.4; padding: 16px 0 8px; }
+.stat-desc { font-size: 16px; line-height: 1.6; margin-top: 8px; }
+
+/* ---------- プロフィール ---------- */
+.profile { display: grid; grid-template-columns: .85fr 1.15fr; gap: 56px; align-items: center; }
+/* 写真の外側に、少し離して円のふち */
+/* 円のふちの描画量（0%〜100%）。@property でアニメーションできるようにする */
+@property --ring { syntax: "<percentage>"; inherits: false; initial-value: 100%; }
+.profile-photo { position: relative; padding: 24px; }
+.profile-photo::before {
+  content: ""; position: absolute; inset: 6px; border-radius: 50%;
+  border: 2px solid var(--green);
+  /* 真上から時計回りに、--ring の分だけ見せる */
+  -webkit-mask: conic-gradient(#000 var(--ring), transparent 0);
+  mask: conic-gradient(#000 var(--ring), transparent 0);
+}
+/* script.js：画面に入る前は0%、入ったら1.4秒かけて100%に */
+.profile-photo.js-ring::before { --ring: 0%; }
+.profile-photo.js-ring.is-ring-in::before { --ring: 100%; transition: --ring 1.4s cubic-bezier(.6, 0, .2, 1) .4s; }
+.profile-photo img {
+  width: 100%; aspect-ratio: 1 / 1; object-fit: cover; object-position: 50% 30%;
+  border-radius: 50%; box-shadow: var(--shadow);
+}
+.profile h3 { font-family: var(--maru); font-weight: 700; font-size: 32px; line-height: 1.3; margin: 0 0 16px; color: var(--green); }
+.profile .role { font-family: var(--maru); color: #7b867f; font-weight: 500; font-size: 14px; line-height: 1.4; margin: 0 0 4px; }
+.profile p { margin: 0 0 16px; }
+.profile .quote {
+  font-family: var(--maru); font-weight: 700;
+  font-size: 24px; line-height: 1.9; margin: 32px 0;
+}
+.profile .quote span { background: linear-gradient(transparent 58%, var(--green-soft) 58%); }
+
+/* ---------- お客様の声 ---------- */
+.voices { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+.voice {
+  background: var(--white); border-radius: var(--radius); padding: 32px;
+  box-shadow: var(--shadow);
+  display: flex; flex-direction: column;
+}
+.voice-head { display: flex; gap: 16px; align-items: center; margin-bottom: 16px; }
+/* 生徒さんのアイコン（イラスト。背景は透過なので薄いベージュの丸を敷く） */
+.voice-avatar {
+  flex: none; width: 80px; height: 80px; border-radius: 50%;
+  object-fit: cover; background: var(--bg-soft);
+}
+.voice-attr { margin: 0; font-size: 16px; color: var(--ink-sub); font-weight: 700; }
+.voice h3 { font-family: var(--maru); font-weight: 700; font-size: 22px; line-height: 1.5; margin: 0; color: var(--coral-deep); }
+.voice-body p { margin: 0 0 8px; font-size: 16px; line-height: 1.9; }
+/* 先生からの返信：小さな丸い写真＋吹き出し */
+.voice-reply { display: flex; gap: 16px; align-items: flex-start; margin-top: auto; padding-top: 24px; }
+/* 先生の写真と、その下の名前 */
+.voice-teacher { flex: none; margin: 0; width: 80px; text-align: center; }
+.voice-teacher img { width: 80px; height: 80px; margin: 0 auto; border-radius: 50%; object-fit: cover; }
+.voice-teacher figcaption { font-family: var(--maru); font-weight: 700; font-size: 12px; line-height: 1.6; color: var(--coral-deep); margin-top: 0; }
+.voice-reply-text {
+  position: relative; flex: 1;
+  background: var(--coral-pale); border-radius: 16px; padding: 16px 24px;
+  font-size: 16px; line-height: 1.8;
+}
+.voice-reply-text::before {
+  /* 吹き出しのしっぽ（先生の写真の中央あたりを指す） */
+  content: ""; position: absolute; left: -8px; top: 24px;
+  border-right: 8px solid var(--coral-pale); border-block: 8px solid transparent;
+}
+.voice-reply-text p { margin: 0 0 8px; }
+.voice-reply-text p:last-child { margin-bottom: 0; }
+
+/* ---------- 料金 ---------- */
+.price {
+  position: relative; overflow: hidden; padding: 112px 0;
+  background: var(--green); color: var(--white);
+}
+/* 背景の大きな円（有機的な面の重なり） */
+.price::before, .price::after {
+  content: ""; position: absolute; border-radius: 50%; pointer-events: none;
+}
+.price::before { transform: translateY(calc(var(--py, 0) * 1px)); width: 1100px; height: 1100px; right: -380px; top: -560px; background: #3a9474; }
+.price::after { transform: translateY(calc(var(--py, 0) * -0.6px)); width: 620px; height: 620px; right: -160px; bottom: -380px; background: #4fa383; }
+.price-inner { position: relative; z-index: 1; }
+.price .eyebrow, .price .h2 { color: var(--white); }
+.price .eyebrow { opacity: .8; }
+/* 緑の背景の上なので、ボタン下の注記は白に */
+.price .btn-note { color: var(--white); }
+.price-note {
+  list-style: none; padding: 0;
+  max-width: 860px; margin: 40px auto 0;
+  display: grid; gap: 8px; font-size: 18px; line-height: 1.8;
+}
+.price-note li { display: flex; }
+.price-note li::before { content: "・"; flex: none; }
+.price-note b { font-weight: 700; }
+.price-note li > span { flex: 1; }
+.price-cards { display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px; align-items: center; max-width: 860px; margin: 0 auto; }
+.price-card {
+  align-self: stretch;
+  background: var(--white); color: var(--ink); border-radius: 24px;
+  padding: 48px 24px 40px; text-align: center;
+  box-shadow: 0 24px 48px rgba(16, 64, 46, .22);
+  display: flex; flex-direction: column; align-items: center;
+}
+.plan-label {
+  display: inline-block; border-radius: 999px; padding: 0 24px; line-height: 2.2;
+  font-family: var(--maru); font-weight: 700; font-size: 16px; letter-spacing: .08em;
+  background: var(--green); color: var(--white); border: 2px solid var(--green);
+}
+.plan-label.is-outline { background: transparent; color: var(--green); }
+.price-card h3 { font-family: var(--maru); font-weight: 700; font-size: 24px; margin: 24px 0 0; }
+.price-card h3 span { font-size: 18px; font-weight: 700; color: var(--ink-sub); margin-left: 8px; }
+.price-main {
+  font-family: var(--maru); font-weight: 700; font-size: 64px; line-height: 1.2;
+  color: var(--coral); margin: 0; letter-spacing: 0;
+}
+.price-main .yen { font-size: 32px; }
+.price-main small { font-family: var(--sans); font-weight: 700; font-size: 18px; color: var(--ink-sub); margin-left: 8px; }
+.price-monitor { margin: 0; font-size: 16px; font-weight: 700; color: var(--coral-deep); }
+.price-checks { list-style: none; padding: 0; margin: 24px 0 0; text-align: left; display: grid; gap: 8px; }
+.price-checks li { display: flex; gap: 8px; align-items: center; font-weight: 700; font-size: 18px; white-space: nowrap; }
+.price-checks li::before {
+  content: "check"; flex: none;
+  font-family: "Material Symbols Rounded"; font-weight: normal; font-style: normal; line-height: 1;
+  font-feature-settings: "liga"; -webkit-font-feature-settings: "liga";
+  font-size: 22px; color: var(--green-deep); font-variation-settings: "FILL" 1;
+}
+/* 体験 → 正規 の流れを示す矢印 */
+.price-arrow { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.price-arrow-icon { color: var(--white); display: grid; place-items: center; }
+.price-arrow-icon::before {
+  content: "play_arrow";
+  font-family: "Material Symbols Rounded"; font-weight: normal; font-style: normal; line-height: 1;
+  font-variation-settings: "FILL" 1;
+  font-feature-settings: "liga"; -webkit-font-feature-settings: "liga";
+  font-size: 44px;
+}
+.price-arrow-text { font-family: var(--maru); font-weight: 700; font-size: 16px; color: var(--white); white-space: nowrap; }
+
+/* ---------- 流れ ---------- */
+.steps {
+  list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; counter-reset: step;
+  position: relative; isolation: isolate;
+}
+/* ブロックを串刺しにするオレンジの棒（ブロックの背面を通す） */
+/* 棒はブロックの表示に合わせて左から右へ伸びる（script.js が is-line-in を付与） */
+/* 最初は長さ0（transition を付けないので、読み込み時に縮む動きは出ない） */
+.steps.js-line::before { transform: scaleX(0); transform-origin: left center; }
+.steps.js-line.is-line-in::before { transform: none; transition: transform 1.2s cubic-bezier(.6, 0, .2, 1) .8s; }
+.steps::before {
+  content: ""; position: absolute; z-index: -1;
+  left: 0; right: 0; top: 50%; height: 4px; margin-top: -2px;
+  background: var(--coral);
+}
+.step {
+  background: var(--white); border-radius: var(--radius); padding: 32px 16px 24px;
+  text-align: center; position: relative; box-shadow: var(--shadow); counter-increment: step;
+}
+.step::before {
+  content: "STEP " counter(step, zenkaku);
+  display: block; font-family: var(--maru); font-weight: 700; font-size: 14px;
+  color: var(--coral-deep); letter-spacing: .1em; margin-bottom: 8px;
+}
+/* PCは1行に収まる最大の20px（狭い画面は下のメディアクエリで小さくする） */
+.step h3 { font-family: var(--maru); font-weight: 700; font-size: 20px; line-height: 1.5; margin: 0 0 8px; white-space: nowrap; }
+.step p { margin: 0; font-size: 14px; line-height: 1.7; color: var(--ink-sub); text-align: left; }
+
+/* ---------- FAQ ---------- */
+.faq-group + .faq-group { margin-top: 48px; }
+.faq-group h3 {
+  font-family: var(--maru); font-weight: 700; font-size: 18px;
+  display: flex; align-items: center; gap: 12px; margin: 0 0 16px;
+}
+.faq-group h3::before { content: ""; width: 8px; height: 24px; border-radius: 4px; background: var(--coral); }
+details {
+  background: var(--white); border-radius: 16px;
+  margin-bottom: 16px; overflow: hidden;
+}
+summary {
+  list-style: none; cursor: pointer; padding: 16px 56px; position: relative;
+  font-weight: 700; line-height: 1.6;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before, .answer::before {
+  position: absolute; left: 24px; top: 16px;
+  font-family: var(--maru); font-weight: 700; font-size: 20px;
+}
+summary::before { content: "Q"; color: var(--coral); top: 50%; line-height: 1; transform: translateY(-50%); }
+summary::after {
+  content: ""; position: absolute; right: 24px; top: 50%;
+  width: 10px; height: 10px; border-right: 2px solid var(--ink-sub); border-bottom: 2px solid var(--ink-sub);
+  transform: translateY(-70%) rotate(45deg); transition: transform .2s;
+}
+details.is-open summary::after { transform: translateY(-30%) rotate(-135deg); }
+/* 開閉アニメーション：grid-template-rows を 0fr ⇔ 1fr で切り替え（script.js で is-open を付け外し） */
+.answer-wrap { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows .3s ease-out, opacity .3s ease-out; }
+details.is-open .answer-wrap { grid-template-rows: 1fr; opacity: 1; }
+.answer-wrap > .answer { min-height: 0; overflow: hidden; }
+@media (prefers-reduced-motion: reduce) { .answer-wrap { transition: none; } }
+.answer { position: relative; padding: 0 24px 0 56px; font-size: 16px; }
+.answer > :last-child { margin-bottom: 24px; }
+.answer::before { content: "A"; color: var(--green-deep); top: -2px; }
+.answer p { margin: 0 0 8px; }
+.answer p:last-child { margin-bottom: 24px; }
+.answer ul, .answer ol { margin: 8px 0; padding-left: 24px; }
+
+/* ---------- クロージング ---------- */
+.closing { position: relative; overflow: hidden; background: var(--green-deep); color: var(--white); padding: 96px 0; }
+/* 背景のニュアンス：五線譜の波線と音符が、ゆっくり右から左へ流れる */
+.closing::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  /* 五線の中心が、ボタン下の注記のすぐ下に来るよう下端から配置 */
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='260' viewBox='0 0 1200 260'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.14' stroke-width='1.5'%3E%3Cpath d='M0,96 C150,48 450,144 600,96 C750,48 1050,144 1200,96'/%3E%3Cpath d='M0,112 C150,64 450,160 600,112 C750,64 1050,160 1200,112'/%3E%3Cpath d='M0,128 C150,80 450,176 600,128 C750,80 1050,176 1200,128'/%3E%3Cpath d='M0,144 C150,96 450,192 600,144 C750,96 1050,192 1200,144'/%3E%3Cpath d='M0,160 C150,112 450,208 600,160 C750,112 1050,208 1200,160'/%3E%3C/g%3E%3Cg fill='%23ffffff' fill-opacity='.18'%3E%3Cg transform='translate(250,108)'%3E%3Cellipse rx='9' ry='6.5' transform='rotate(-20)'/%3E%3Crect x='7' y='-44' width='2.4' height='44'/%3E%3Cpath d='M9.4,-44 c8,6 14,12 10,26 c2,-10 -4,-15 -10,-17z'/%3E%3C/g%3E%3Cg transform='translate(520,150)'%3E%3Cellipse rx='9' ry='6.5' transform='rotate(-20)'/%3E%3Crect x='7' y='-44' width='2.4' height='44'/%3E%3C/g%3E%3Cg transform='translate(560,118)'%3E%3Cellipse rx='9' ry='6.5' transform='rotate(-20)'/%3E%3Crect x='7' y='-44' width='2.4' height='44'/%3E%3Cpath d='M9.4,-44 c8,6 14,12 10,26 c2,-10 -4,-15 -10,-17z'/%3E%3C/g%3E%3Cg transform='translate(900,142)'%3E%3Cellipse rx='9' ry='6.5' transform='rotate(-20)'/%3E%3Crect x='7' y='-44' width='2.4' height='44'/%3E%3Cpath d='M9.4,-44 c8,6 14,12 10,26 c2,-10 -4,-15 -10,-17z'/%3E%3C/g%3E%3Cg transform='translate(1080,104)'%3E%3Cellipse rx='9' ry='6.5' transform='rotate(-20)'/%3E%3Crect x='7' y='-44' width='2.4' height='44'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat-x left 0 bottom -48px / 1200px 260px;
+  animation: staff-flow 60s linear infinite;
+}
+@keyframes staff-flow { to { background-position-x: -1200px; } }
+@media (prefers-reduced-motion: reduce) { .closing::before { animation: none; } }
+.closing .wrap { position: relative; z-index: 1; }
+.closing .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+.closing-photo { position: relative; aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--radius); }
+.closing-photo img {
+  /* パララックスで動かす分だけ上下に余白を持たせる */
+  position: absolute; left: 0; top: -15%;
+  width: 100%; height: 130%;
+  object-fit: cover; object-position: 38% 45%;
+}
+.closing-text { text-align: center; }
+.closing h2 {
+  font-family: var(--maru); font-weight: 700;
+  font-size: 32px; line-height: 1.6; margin: 0 0 16px;
+}
+.closing p { font-family: var(--maru); font-weight: 700; font-size: 18px; margin: 0 0 40px; }
+.closing .btn-note { color: rgba(255,255,255,.85); margin: 16px 0 0; font-size: 14px; }
+
+.footer { text-align: center; padding: 32px 16px; font-size: 14px; color: var(--ink-sub); }
+
+/* ---------- スマホ固定CTA ---------- */
+.sticky-cta {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+  padding: 16px 16px calc(8px + env(safe-area-inset-bottom));
+  /* 上端をぼかして、すりガラスと本文の境界を目立たなくする */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 8px);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 8px);
+  /* すりガラス */
+  background: rgba(255, 255, 255, .06);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  display: none;
+  transition: transform .3s ease, opacity .3s ease;
+}
+/* FVのボタンが画面に見えている間は、追従ボタンを下に隠す */
+/* hidden 属性が付いている間は出さない */
+.sticky-cta[hidden] { display: none !important; }
+.is-hero-cta-visible .sticky-cta { transform: translateY(100%); opacity: 0; pointer-events: none; }
+.sticky-cta .btn { width: 100%; padding: 16px; font-size: 18px; }
+
+/* ---------- 動き（script.js がクラスを付与） ---------- */
+/* スクロールで入ってきた要素をふわっと表示 */
+.js-reveal {
+  opacity: 0; transform: translateY(24px);
+  transition: opacity .8s ease, transform .8s cubic-bezier(.2, .7, .2, 1);
+  transition-delay: var(--d, 0s);
+}
+.js-reveal.is-in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .js-reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* ---------- レスポンシブ ---------- */
+@media (max-width: 1140px) and (min-width: 541px) {
+  .wrap { width: min(1024px, 100% - 64px); }
+  .narrow { width: min(760px, 100% - 64px); }
+  .hero { --side: max(32px, calc((100vw - 1024px) / 2)); }
+  .hero h1 { font-size: 48px; }
+  .hero h1 em { font-size: 64px; }
+  .hero-lead { font-size: 18px; }
+  .hero-lead strong { font-size: 32px; }
+  .step h3 { font-size: 16px; }
+  .closing h2 { font-size: 28px; }
+}
+@media (max-width: 840px) {
+  /* 締めの写真：人物が枠の上寄りに来るよう、写真の下側に寄せて拡大 */
+  .closing-photo img { top: -53%; height: 167%; object-position: 40% 50%; }
+  /* 締めの五線：ボタンのすぐ上あたりに通す */
+  .closing::before { background-position-y: bottom 88px; }
+  /* コピー → 写真（上をぼかして重ねる）→ 特長 → ボタン の縦並び */
+  .hero { display: flex; align-items: stretch; gap: 0; min-height: 0; padding: 32px 16px; }
+  .hero-photo {
+    position: relative; inset: auto; order: 2;
+    margin: -48px -16px -40px; aspect-ratio: 375 / 330;
+  }
+  .hero-photo img {
+    right: auto; left: 0; top: -4%; width: 100%; height: 108%; max-width: none;
+    object-fit: cover; object-position: calc(100% + 104px) 50%;
+    -webkit-mask-image:
+      linear-gradient(to bottom, transparent 0%, #000 28%),
+      linear-gradient(to top, transparent 0%, #000 30%);
+    mask-image:
+      linear-gradient(to bottom, transparent 0%, #000 28%),
+      linear-gradient(to top, transparent 0%, #000 30%);
+  }
+  .hero-text { order: 1; margin-bottom: 0; }
+  .hero-bottom { order: 3; margin-top: 0; padding-top: 0; }
+  .hero-cta { order: 4; align-self: stretch; margin-top: 24px; }
+  .hero-label { font-size: 16px; gap: 8px; margin-bottom: 16px; }
+  .hero-label .ms { font-size: 28px; }
+  .hero h1 { font-size: 40px; letter-spacing: 0; margin-bottom: 16px; }
+  .hero h1 em { font-size: 52px; }
+  .hero-lead strong { font-size: 24px; }
+  .hero-features strong { font-size: 24px; }
+  .hero-lead { font-size: 14px; letter-spacing: 0; }
+  .hero-features { grid-template-columns: repeat(3, 1fr); width: 100%; }
+  .hero-features li {
+    flex-direction: column; gap: 8px; padding: 0 8px; text-align: center;
+    font-size: 12px; line-height: 1.5; letter-spacing: 0;
+  }
+  .hero-icon { width: 56px; height: 56px; }
+  .hero-icon .ms { font-size: 32px; }
+  .hero-cta { width: 100%; padding: 8px 8px 8px 16px; gap: 8px; font-size: 14px; letter-spacing: 0; white-space: nowrap; }
+  /* 375px幅で「まずは体験レッスン1,000円から」が1行に収まるように */
+  .btn, .sticky-cta .btn { padding: 16px; font-size: 16px; letter-spacing: 0; white-space: nowrap; }
+  .hero-cta b { font-size: 18px; margin: 0; }
+  .hero-cta-label > span:first-child { font-size: 18px; }
+  /* 生徒さんの声の下のボタンも、締めのボタンと同じく横幅いっぱいに */
+  .cta-block .btn { width: 100%; }
+  .price-checks { gap: 4px; }
+  .price-arrow { gap: 0; }
+  .hero-cta-label small { font-size: 12px; }
+  .hero-cta-arrow { width: 40px; height: 40px; }
+  .hero-cta-arrow .ms { font-size: 24px; }
+  .steps { grid-template-columns: 1fr; }
+  .steps::before { left: 50%; right: auto; top: 0; bottom: 0; width: 4px; height: auto; margin: 0 0 0 -2px; }
+  /* スマホは縦の棒なので、上から下へ伸びる */
+  /* 縦並びでは、表示されたブロックの下端まで棒を伸ばす（script.js が --line-h を更新） */
+  .steps.js-line::before,
+  .steps.js-line.is-line-in::before {
+    transform: none; bottom: auto; height: var(--line-h, 0px);
+    transition: height .8s cubic-bezier(.6, 0, .2, 1) .4s;
+  }
+  .step { text-align: left; display: grid; grid-template-columns: auto 1fr; column-gap: 16px; padding: 24px; }
+  .step h3 { font-size: 18px; }
+  .step::before { grid-row: span 2; margin: 0; writing-mode: horizontal-tb; align-self: start; line-height: 2; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 540px) {
+  /* キャッチ「３ヶ月で弾き語り。」を1行に（375px幅で横幅いっぱい） */
+  .hero h1 { font-size: 36px; }
+  .hero h1 em { font-size: 44px; }
+  /* FVの特長3つ：左右の余白は10px（ユーザー指定。8px刻みの例外）。
+     「０」が大きい3つ目に合わせ、3つとも文字の下端を揃える（アイコンは上端揃えのまま） */
+  .hero-features li { padding: 0 10px; }
+  .hero-features li > span:last-child { margin-top: auto; }
+  /* 締めの見出し：375px幅で各行が途中で折り返さない大きさ */
+  .closing h2 { font-size: 24px; }
+  body { font-size: 16px; }
+  .section { padding: 64px 0; }
+  .h2 { margin-bottom: 32px; }
+  .features, .voices, .price-cards { grid-template-columns: 1fr; }
+  .voice { padding: 24px; }
+  /* スマホはアイコンを小さめに */
+  .voice-avatar { width: 56px; height: 56px; }
+  .voice-teacher { width: 56px; }
+  .voice-teacher img { width: 56px; height: 56px; }
+  .voice-teacher figcaption { font-size: 12px; }
+  .voice h3 { font-size: 18px; }
+  .voice-body p, .voice-reply-text { font-size: 14px; }
+  .voice-reply-text { padding: 16px; }
+  .price-arrow-icon { transform: rotate(90deg); }
+  .price { padding: 72px 0; }
+  .price::before { width: 700px; height: 700px; right: -420px; top: -300px; }
+  .price-card { padding: 40px 24px 32px; }
+  .keys { height: 44px; background-size: 132px 44px; }
+  .profile { grid-template-columns: 1fr; gap: 32px; }
+  .profile-photo { width: 88%; margin: 0 auto; }
+  .pc-only { display: none; }
+  .sp-only { display: inline; }
+  .profile h3, .profile .role { text-align: center; }
+  .stat-num { font-size: 36px; }
+  .stat-num small { font-size: 18px; }
+  .stat-label { font-size: 14px; padding: 0 8px; }
+  .stat-desc { font-size: 14px; }
+  /* 「大人〜小学生」は1行・小さめにして、隣の数字のカードと高さを揃える */
+  .stat-num--text { font-size: 18px; line-height: 1.3; padding: 8px 0; white-space: nowrap; }
+  .closing { padding: 64px 0; }
+  .closing::before { background-position-y: bottom 40px; }
+  .closing .wrap { grid-template-columns: 1fr; gap: 32px; }
+  .closing p { font-size: 16px; }
+  .closing .btn { width: 100%; }
+  .sticky-cta { display: block; }
+  /* 追従CTAを表示しているときだけ、その高さぶん下を空ける */
+  body:has(.sticky-cta:not([hidden])) .footer { padding-bottom: 96px; }
+}
+
+/* タブレット幅でFVが縦並びになるときも、左右の余白は32px */
+@media (max-width: 840px) and (min-width: 541px) {
+  /* タブレット幅：カード類は1列に並べる（料金の矢印は下向き） */
+  .features, .voices, .price-cards { grid-template-columns: 1fr; }
+  .price-cards { max-width: 480px; }
+  .price-arrow-icon { transform: rotate(90deg); }
+  .profile { grid-template-columns: 1fr; gap: 32px; }
+  .profile-photo { width: 64%; margin: 0 auto; }
+  .profile h3, .profile .role { text-align: center; }
+  .closing .wrap { grid-template-columns: 1fr; gap: 32px; }
+  /* FVの写真：幅が広がっても縦に伸びすぎないよう横長に */
+  .hero-photo { aspect-ratio: 16 / 9; }
+  /* 横長の枠では写真の横のはみ出しが少ないので、右へずらすと左に隙間ができる。右端揃えにする */
+  .hero-photo img { object-position: 100% 50%; }
+  /* FVの特長3つ・ボタンの文字を、タブレット幅に合わせて大きく */
+  .hero-lead { font-size: 18px; }
+  .hero-lead strong { font-size: 32px; }
+  .hero-features li { font-size: 16px; }
+  .hero-icon { width: 64px; height: 64px; }
+  .hero-icon .ms { font-size: 36px; }
+  .hero-cta { padding: 8px 8px 8px 24px; }
+  .hero-cta-label > span:first-child { font-size: 20px; }
+  .hero-cta b { font-size: 24px; margin: 0 4px; }
+  .hero-cta-label small { font-size: 14px; }
+  .hero-cta-arrow { width: 56px; height: 56px; }
+  .hero-cta-arrow .ms { font-size: 32px; }
+  /* ほかのCTAボタンもFVのボタンと同じ横幅いっぱい・同じ高さに揃える */
+  .btn { width: 100%; min-height: 80px; padding: 8px 24px; font-size: 24px; letter-spacing: 0; white-space: nowrap; }
+  .btn svg { width: 32px; height: 32px; }
+  .hero-cta { min-height: 80px; }
+  .hero { padding-inline: 32px; }
+  .hero-photo { margin-inline: -32px; }
+}
+
+/* 1441px以上：FV全体（写真の枠）を幅1440pxで画面中央に置く。
+   写真はその枠の右端に揃え、右端も背景色へぼかして切れ目を目立たなくする */
+@media (min-width: 1441px) {
+  .hero-photo { left: calc(50% - 720px); right: calc(50% - 720px); }
+  .hero-photo img {
+    -webkit-mask-image:
+      linear-gradient(to right, transparent 0%, #000 16%),
+      linear-gradient(to left, transparent 0%, #000 8%),
+      linear-gradient(to top, transparent 0%, transparent 8%, #000 36%);
+    -webkit-mask-composite: source-in, source-in;
+    mask-image:
+      linear-gradient(to right, transparent 0%, #000 16%),
+      linear-gradient(to left, transparent 0%, #000 8%),
+      linear-gradient(to top, transparent 0%, transparent 8%, #000 36%);
+    mask-composite: intersect, intersect;
+  }
+}
