@@ -304,7 +304,8 @@ a { color: inherit; }
 .voice h3 { font-family: var(--maru); font-weight: 700; font-size: 22px; line-height: 1.5; margin: 0; color: var(--coral-deep); }
 .voice-body p { margin: 0 0 8px; font-size: 16px; line-height: 1.9; }
 /* 先生からの返信：小さな丸い写真＋吹き出し */
-.voice-reply { display: flex; gap: 16px; align-items: flex-start; margin-top: auto; padding-top: 24px; }
+/* 先生の返信は感想のすぐ下に続ける（カードの高さは同じ段で揃えたまま） */
+.voice-reply { display: flex; gap: 16px; align-items: flex-start; margin-top: 24px; }
 /* 先生の写真と、その下の名前 */
 .voice-teacher { flex: none; margin: 0; width: 80px; text-align: center; }
 .voice-teacher img { width: 80px; height: 80px; margin: 0 auto; border-radius: 50%; object-fit: cover; }
@@ -392,7 +393,7 @@ a { color: inherit; }
 
 /* ---------- 流れ ---------- */
 .steps {
-  list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; counter-reset: step;
+  list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; counter-reset: step;
   position: relative; isolation: isolate;
 }
 /* ブロックを串刺しにするオレンジの棒（ブロックの背面を通す） */
@@ -414,9 +415,12 @@ a { color: inherit; }
   display: block; font-family: var(--maru); font-weight: 700; font-size: 14px;
   color: var(--coral-deep); letter-spacing: .1em; margin-bottom: 8px;
 }
-/* PCは1行に収まる最大の20px（狭い画面は下のメディアクエリで小さくする） */
-.step h3 { font-family: var(--maru); font-weight: 700; font-size: 20px; line-height: 1.5; margin: 0 0 8px; white-space: nowrap; }
+/* PC（6列）で1行に収まり、6列が同じ幅になる18px */
+.step h3 { font-family: var(--maru); font-weight: 700; font-size: 18px; line-height: 1.5; margin: 0 0 8px; white-space: nowrap; }
 .step p { margin: 0; font-size: 14px; line-height: 1.7; color: var(--ink-sub); text-align: left; }
+/* 最後のステップはゴールとして、オレンジ背景・白文字で目立たせる（表記は STEP ６ のまま） */
+.step:last-child { background: var(--coral); color: var(--white); }
+.step:last-child::before, .step:last-child p { color: var(--white); }
 
 /* ---------- FAQ ---------- */
 .faq-group + .faq-group { margin-top: 48px; }
@@ -529,8 +533,21 @@ details.is-open .answer-wrap { grid-template-rows: 1fr; opacity: 1; }
   .hero h1 em { font-size: 64px; }
   .hero-lead { font-size: 18px; }
   .hero-lead strong { font-size: 32px; }
-  .step h3 { font-size: 16px; }
   .closing h2 { font-size: 28px; }
+}
+/* 体験レッスンの流れ：6ステップは1140px以下では横1列に収まらないため、縦並びにする */
+@media (max-width: 1140px) {
+  .steps { grid-template-columns: 1fr; max-width: 640px; margin-inline: auto; }
+  .steps::before { left: 50%; right: auto; top: 0; bottom: 0; width: 4px; height: auto; margin: 0 0 0 -2px; }
+  /* 縦並びでは、表示されたブロックの下端まで棒を伸ばす（script.js が --line-h を更新） */
+  .steps.js-line::before,
+  .steps.js-line.is-line-in::before {
+    transform: none; bottom: auto; height: var(--line-h, 0px);
+    transition: height .8s cubic-bezier(.6, 0, .2, 1) .4s;
+  }
+  .step { text-align: left; display: grid; grid-template-columns: auto 1fr; column-gap: 16px; padding: 24px; }
+  .step h3 { font-size: 18px; }
+  .step::before { grid-row: span 2; margin: 0; writing-mode: horizontal-tb; align-self: start; line-height: 2; }
 }
 @media (max-width: 840px) {
   /* 締めの写真：人物が枠の上寄りに来るよう、写真の下側に寄せて拡大 */
@@ -582,18 +599,6 @@ details.is-open .answer-wrap { grid-template-rows: 1fr; opacity: 1; }
   .hero-cta-label small { font-size: 12px; }
   .hero-cta-arrow { width: 40px; height: 40px; }
   .hero-cta-arrow .ms { font-size: 24px; }
-  .steps { grid-template-columns: 1fr; }
-  .steps::before { left: 50%; right: auto; top: 0; bottom: 0; width: 4px; height: auto; margin: 0 0 0 -2px; }
-  /* スマホは縦の棒なので、上から下へ伸びる */
-  /* 縦並びでは、表示されたブロックの下端まで棒を伸ばす（script.js が --line-h を更新） */
-  .steps.js-line::before,
-  .steps.js-line.is-line-in::before {
-    transform: none; bottom: auto; height: var(--line-h, 0px);
-    transition: height .8s cubic-bezier(.6, 0, .2, 1) .4s;
-  }
-  .step { text-align: left; display: grid; grid-template-columns: auto 1fr; column-gap: 16px; padding: 24px; }
-  .step h3 { font-size: 18px; }
-  .step::before { grid-row: span 2; margin: 0; writing-mode: horizontal-tb; align-self: start; line-height: 2; }
   .stats { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 540px) {

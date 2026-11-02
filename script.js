@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const steps = document.querySelector('.steps');
   if (!steps) return;
   steps.classList.add('js-line');
-  const vertical = window.matchMedia('(max-width: 840px)');
+  const vertical = window.matchMedia('(max-width: 1140px)');
 
   // 横並び：ブロックが出そろうタイミングで、棒を左から右へ
   const io = new IntersectionObserver(([entry]) => {
