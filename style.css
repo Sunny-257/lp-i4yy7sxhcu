@@ -418,9 +418,9 @@ a { color: inherit; }
 /* PC（6列）で1行に収まり、6列が同じ幅になる18px */
 .step h3 { font-family: var(--maru); font-weight: 700; font-size: 18px; line-height: 1.5; margin: 0 0 8px; white-space: nowrap; }
 .step p { margin: 0; font-size: 14px; line-height: 1.7; color: var(--ink-sub); text-align: left; }
-/* STEP１のメールアドレス：PCの6列では @ の後（<wbr>）で2行に折り返す（12pxで1列に収まる）。縦並びでは14px */
-.step-mail { display: inline-block; margin-top: 8px; color: var(--coral-deep); font-size: 12px; font-weight: 700; overflow-wrap: anywhere; }
-@media (max-width: 1140px) { .step-mail { font-size: 14px; } }
+/* 文中のリンク（Instagram・メール）：オレンジの太字＋下線 */
+.text-link { color: var(--coral-deep); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+.text-link:hover { text-decoration: none; }
 /* 最後のステップはゴールとして、オレンジ背景・白文字で目立たせる（表記は STEP ６ のまま） */
 .step:last-child { background: var(--coral); color: var(--white); }
 .step:last-child::before, .step:last-child p { color: var(--white); }
